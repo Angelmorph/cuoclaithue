@@ -69,7 +69,7 @@
         .gps-status{font-size:0.75rem;margin-top:5px;padding:5px;border-radius:5px;display:flex;align-items:center;gap:5px;}
         .gps-active{background:rgba(76,201,240,0.2);color:#4cc9f0;}
         .gps-error{background:rgba(247,37,133,0.2);color:#f72585;}
-        .solution-box{background:rgba(27,58,94,0.7);border-radius:10px;padding:15px;margin:10px 0;border-left:4px solid #f72585;display:flex;flex-direction:column;gap:12px;}
+        .solution-box{background:rgba(27,58,94,0.7);border-radius:10px;padding:15px;margin:10px 0;border-left:4px solid #f72585; display: none; /* Changed: Hidden by default */ }
         .solution-box h3{color:#f72585;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
         .solution-steps{padding-left:20px;}
         .solution-steps li{margin-bottom:8px;line-height:1.4;}
@@ -314,7 +314,8 @@
                         }
                     },
                     (error) => {
-                        console.error("Lỗi khi lấy vị trí:", error); // Log the full error object
+                        // Log a more descriptive error message
+                        console.error("Lỗi khi lấy vị trí:", error.message || JSON.stringify(error) || 'Không xác định');
                         
                         let errorMessage;
                         switch(error.code) {
@@ -337,8 +338,8 @@
                         errorElement.textContent = errorMessage;
                         errorElement.style.display = 'block';
                         gpsStatusElement.className = 'gps-status gps-error';
-                        // Use the errorMessage for display, providing a fallback if error.code is undefined
-                        gpsTextElement.textContent = 'Lỗi: ' + (error.code || 'Không xác định');
+                        // Use the errorMessage for display, which is more descriptive
+                        gpsTextElement.textContent = errorMessage;
                     },
                     {
                         enableHighAccuracy: true,
@@ -355,18 +356,20 @@
                 const gpsStatusElement = document.getElementById(inputId.replace('-input', '-gps-status'));
                 const gpsTextElement = document.getElementById(inputId.replace('-input', '-gps-text'));
                 
+                gpsStatusElement.className = 'gps-status gps-active';
+                gpsTextElement.textContent = 'Đang theo dõi vị trí...'; // Initial state when tracking starts
+
                 gpsWatchId = navigator.geolocation.watchPosition(
                     (position) => {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         updateMapMarker(inputId, [parseFloat(lat), parseFloat(lng)]); // Update marker on map
                         gpsStatusElement.className = 'gps-status gps-active';
-                        gpsTextElement.textContent = 'Đang cập nhật vị trí';
-                        // Briefly show "Đang cập nhật vị trí" then switch to "Đang theo dõi vị trí"
-                        setTimeout(() => gpsTextElement.textContent = 'Đang theo dõi vị trí', 2000);
+                        gpsTextElement.textContent = 'Đang theo dõi vị trí'; // Confirming tracking
                     },
                     (error) => {
-                        console.error("Lỗi khi theo dõi vị trí:", error); // Log the full error object
+                        // Log a more descriptive error message
+                        console.error("Lỗi khi theo dõi vị trí:", error.message || JSON.stringify(error) || 'Không xác định');
                         let errorMessage;
                         switch(error.code) {
                             case error.PERMISSION_DENIED:
